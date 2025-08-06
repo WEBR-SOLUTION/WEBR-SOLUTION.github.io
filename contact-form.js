@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('contact-form');
     const formMessage = document.getElementById('form-message');
-    const apiUrl = 'http://webrsolution.pythonanywhere.com/api/submit';
+    const apiUrl = 'https://webrsolution.pythonanywhere.com/api/submit';
     const apiKey = '068e4b57f9876e6c17c03a00da76ff74';
 
     // Function to display messages

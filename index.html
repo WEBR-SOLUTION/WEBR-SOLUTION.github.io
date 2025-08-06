@@ -795,6 +795,98 @@
             }
         });
     </script>
-    <script src="contact-form.js"></script>
+    <script>
+// === Contact Form Handler (Embedded for Reliability) ===
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('contact-form');
+    const formMessage = document.getElementById('form-message');
+
+    if (!form) {
+        console.error('❌ #contact-form not found. Check ID.');
+        return;
+    }
+    if (!formMessage) {
+        console.error('❌ #form-message not found. Check ID.');
+        return;
+    }
+
+    const apiUrl = 'https://webrsolution.pythonanywhere.com/api/submit';
+    const apiKey = '068e4b57f9876e6c17c03a00da76ff74';
+
+    function showMessage(message, isError = false) {
+        formMessage.textContent = message;
+        formMessage.className = `mb-4 text-center text-sm font-medium p-2 rounded-md ${
+            isError 
+                ? 'text-red-600 bg-red-100' 
+                : 'text-green-600 bg-green-100'
+        }`;
+        formMessage.classList.remove('hidden');
+        setTimeout(() => formMessage.classList.add('hidden'), 5000);
+    }
+
+    function isValidEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault(); // 🔴 STOP PAGE REFRESH
+        console.log("Form submit intercepted!"); // Debug
+
+        const formData = {
+            full_name: document.getElementById('full_name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            mobile_number: document.getElementById('mobile_number').value.trim(),
+            service_interest: document.getElementById('service_interest').value,
+            message: document.getElementById('message').value.trim()
+        };
+
+        // Validation
+        if (!formData.full_name) return showMessage('Enter your full name', true);
+        if (!formData.email || !isValidEmail(formData.email)) return showMessage('Enter a valid email', true);
+        if (!formData.mobile_number) return showMessage('Enter your mobile number', true);
+        if (!formData.service_interest) return showMessage('Select a service', true);
+        if (!formData.message) return showMessage('Enter a message', true);
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Sending...';
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(formData)
+            });
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+
+            if (!response.ok) {
+                let error = 'Submit failed';
+                try { error = (await response.json()).error || error; }
+                catch { error = await response.text(); }
+                return showMessage(`Error: ${error.substring(0, 100)}`, true);
+            }
+
+            const result = await response.json();
+            showMessage('✅ Message sent successfully!');
+            form.reset();
+
+        } catch (err) {
+            console.error('Fetch error:', err);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            showMessage('Network error. Check console.', true);
+        }
+    });
+
+    console.log("✅ Contact form script loaded and ready.");
+});
+</script>
 </body>
 </html>
